@@ -13,7 +13,6 @@ const { TICKET } = require("@root/config.js");
 const { getSettings } = require("@schemas/Guild");
 
 // helpers
-const { postToBin } = require("@helpers/HttpUtils");
 const { error } = require("@helpers/Logger");
 
 const OPEN_PERMS = ["ManageChannels"];
@@ -71,28 +70,7 @@ async function closeTicket(channel, closedBy, reason) {
 
   try {
     const config = await getSettings(channel.guild);
-    const messages = await channel.messages.fetch();
-    const reversed = Array.from(messages.values()).reverse();
-
-    let content = "";
-    reversed.forEach((m) => {
-      content += `[${new Date(m.createdAt).toLocaleString("en-US")}] - ${m.author.username}\n`;
-      if (m.cleanContent !== "") content += `${m.cleanContent}\n`;
-      if (m.attachments.size > 0) content += `${m.attachments.map((att) => att.proxyURL).join(", ")}\n`;
-      content += "\n";
-    });
-
-    const logsUrl = await postToBin(content, `Ticket Logs for ${channel.name}`);
     const ticketDetails = await parseTicketDetails(channel);
-
-    const components = [];
-    if (logsUrl) {
-      components.push(
-        new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setLabel("Transcript").setURL(logsUrl.short).setStyle(ButtonStyle.Link)
-        )
-      );
-    }
 
     if (channel.deletable) await channel.delete();
 
@@ -118,7 +96,7 @@ async function closeTicket(channel, closedBy, reason) {
     // send embed to log channel
     if (config.ticket.log_channel) {
       const logChannel = channel.guild.channels.cache.get(config.ticket.log_channel);
-      logChannel.safeSend({ embeds: [embed], components });
+      logChannel.safeSend({ embeds: [embed] });
     }
 
     // send embed to user
@@ -126,7 +104,7 @@ async function closeTicket(channel, closedBy, reason) {
       const dmEmbed = embed
         .setDescription(`**Server:** ${channel.guild.name}\n**Category:** ${ticketDetails.catName}`)
         .setThumbnail(channel.guild.iconURL());
-      ticketDetails.user.send({ embeds: [dmEmbed], components }).catch((ex) => {});
+      ticketDetails.user.send({ embeds: [dmEmbed] }).catch((ex) => {});
     }
 
     return "SUCCESS";
