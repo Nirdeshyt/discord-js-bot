@@ -1,5 +1,4 @@
 const ISO6391 = require("iso-639-1");
-const sourcebin = require("sourcebin_js");
 const { error, debug } = require("@helpers/Logger");
 const fetch = require("node-fetch");
 const { translate: gTranslate } = require("@vitalets/google-translate-api");
@@ -72,36 +71,6 @@ module.exports = class HttpUtils {
     } catch (ex) {
       error("translate", ex);
       debug(`Content - ${content} OutputCode: ${outputCode}`);
-    }
-  }
-
-  /**
-   * Posts the provided content to the BIN
-   * @param {string} content
-   * @param {string} title
-   */
-  static async postToBin(content, title) {
-    try {
-      const response = await sourcebin.create(
-        [
-          {
-            name: " ",
-            content,
-            languageId: "text",
-          },
-        ],
-        {
-          title,
-          description: " ",
-        }
-      );
-      return {
-        url: response.url,
-        short: response.short,
-        raw: `https://cdn.sourceb.in/bins/${response.key}/0`,
-      };
-    } catch (ex) {
-      error(`postToBin`, ex);
     }
   }
 };
